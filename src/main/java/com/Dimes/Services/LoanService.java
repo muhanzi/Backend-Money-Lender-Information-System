@@ -2,8 +2,11 @@ package com.Dimes.Services;
 
 import com.Dimes.Models.Loan;
 import com.Dimes.Repositories.LoanRepository;
-import java.util.ArrayList;
-import java.util.Arrays;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import org.springframework.stereotype.Service;
 
@@ -49,7 +52,44 @@ public class LoanService {
     }
 
     // lebon added this
+    public LocalDateTime ConvertToLocalDateTime(Date issued_date) {
+        //
+        SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss a");
+        String startdate = date.format(issued_date);
+        //
+        DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss a");
+        LocalDateTime time = LocalDateTime.parse(startdate, inputFormat);
+        return time;
+    }
+
+    // lebon added this
+    public void checkLoan(LocalDateTime date_issued, Loan loan) {
+        //
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        LocalDateTime date_due = date_issued;
+        //
+        if (loan.getPeriodType().equals("days")) {
+            date_due = date_issued.plusDays(loan.getLoanPeriod());
+        } else if (loan.getPeriodType().equals("weeks")) {
+            date_due = date_issued.plusWeeks(loan.getLoanPeriod());
+        } else if (loan.getPeriodType().equals("months")) {
+            date_due = date_issued.plusMonths(loan.getLoanPeriod());
+        }
+        // after adding the lon period to the date_issued
+        if (currentDateTime.isAfter(date_due)) {
+            // only for loans with status --> onGoing
+            if (loan.getStatus().equals("onGoing")) {
+                loan.setStatus("failed to pay");
+                loanRepository.save(loan); // update the status
+            }
+        }
+    }
+
+    // lebon added this
     public List<Loan> getLenderLoans(int LenderId) {
+        loanRepository.findAllByLender(LenderId).forEach(loan -> {
+            checkLoan(ConvertToLocalDateTime(loan.getDate_issued()), loan);
+        });
         return loanRepository.findAllByLender(LenderId);
     }
 

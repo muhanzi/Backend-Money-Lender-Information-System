@@ -20,6 +20,7 @@ public class Lender {
     private double initialCapital;
     private double interestRate;
     private double totalInterest;
+    private double cashAtHand;
     private String email;
     private String username;
     private String password;
@@ -29,12 +30,13 @@ public class Lender {
     }
 
     public Lender(int id, String companyName, double initialCapital, double interestRate, double totalInterest,
-            String email, String username, String password, String role) {
+            double cashAtHand, String email, String username, String password, String role) {
         this.id = id;
         this.companyName = companyName;
         this.initialCapital = initialCapital;
         this.interestRate = interestRate;
-        this.totalInterest = totalInterest; // lebon added this
+        this.totalInterest = totalInterest;
+        this.cashAtHand = cashAtHand;
         this.email = email;
         this.username = username;
         this.password = password;
@@ -111,6 +113,14 @@ public class Lender {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public double getCashAtHand() {
+        return cashAtHand;
+    }
+
+    public void setCashAtHand(double cashAtHand) {
+        this.cashAtHand = cashAtHand;
     }
 
 }

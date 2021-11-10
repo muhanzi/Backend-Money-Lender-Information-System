@@ -1,6 +1,7 @@
 package com.Dimes.Models;
 
 import javax.persistence.*;
+
 import java.util.Date;
 
 @Entity
@@ -38,7 +39,7 @@ public class Loan {
         this.deposit = deposit;
         this.date_issued = date_issued;
         this.status = status;
-        this.lender = new Lender(0, "", 0.0, 0.0, 0.0, "", "", "", "");
+        this.lender = new Lender(0, "", 0.0, 0.0, 0.0, 0.0, "", "", "", "");
     }
 
     public Date getDate_issued() {

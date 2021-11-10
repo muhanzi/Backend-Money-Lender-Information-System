@@ -25,6 +25,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -83,8 +84,9 @@ public class AuthController {
         }
     }
 
+    // lebon modified this function
     @PostMapping("/register")
-    public ResponseEntity<String> saveLender(@RequestBody Lender lender) {
+    public ResponseEntity<?> saveLender(@RequestBody Lender lender) throws Exception {
         if (!authService.isEmailValid(lender.getEmail())) {
             return new ResponseEntity<>(gson.toJson("Invalid email"), HttpStatus.BAD_REQUEST);
         }
@@ -92,7 +94,24 @@ public class AuthController {
             return new ResponseEntity<>(gson.toJson("Username Exists"), HttpStatus.CONFLICT);
         }
         if (authService.RegisterLender(lender)) {
-            return ResponseEntity.ok(gson.toJson("Registered successfully"));
+            //
+            try {
+                UserDetails userDetails = jwtInMemoryUserDetailsService.loadUserByUsername(lender.getUsername());
+                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, lender.getPassword(), userDetails.getAuthorities());
+                if (usernamePasswordAuthenticationToken.isAuthenticated()) {
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    final String token = jwtTokenUtil.generateToken(userDetails);
+                    return ResponseEntity.ok(new JwtResponse(token));
+                }
+            } catch (Exception e) {
+                return ResponseEntity.status(401).body(new JwtResponse(e.getMessage()));
+                // return ResponseEntity.ok(new JwtResponse(e.getMessage());
+            }
+            //
+            return ResponseEntity.status(401).body(new JwtResponse("no token"));
+            // return ResponseEntity.ok(new JwtResponse("no token"));
+
         } else {
             return new ResponseEntity<>(gson.toJson("An error occurred while registering"),
                     HttpStatus.EXPECTATION_FAILED);

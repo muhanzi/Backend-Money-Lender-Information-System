@@ -1,6 +1,5 @@
 package com.Dimes;
 
-
 import com.Dimes.Controllers.AuthController;
 import com.Dimes.Models.JwtRequest;
 import com.Dimes.Models.Lender;
@@ -43,138 +42,109 @@ public class AuthControllerTests extends JsonManager {
     @MockBean
     private AuthService authService;
 
-    private Lender lender = new Lender(1,"charles company",1000.0,2.3,50.0,"nehe@gmail.com","Nehe","12345678","Admin");
+    private Lender lender = new Lender(1, "charles company", 1000.0, 2.3, 50.0, 1000.0, "nehe@gmail.com", "Nehe",
+            "12345678", "Admin");
 
     @Test
-    void saveLenderTest() throws  Exception
-    {
+    void saveLenderTest() throws Exception {
         when(authService.RegisterLender(any(Lender.class))).thenReturn(true);
         when(authService.isEmailValid("nehe@gmail.com")).thenReturn(true);
-        MvcResult result = mockMvc.perform(post("/api/register")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(super.mapToJson(lender)))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult result = mockMvc.perform(
+                post("/api/register").contentType(MediaType.APPLICATION_JSON_VALUE).content(super.mapToJson(lender)))
+                .andExpect(status().isOk()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString().replaceAll("\"","")).isEqualTo("Registered successfully");
+        assertThat(result.getResponse().getContentAsString().replaceAll("\"", "")).isEqualTo("Registered successfully");
     }
 
     @Test
     @DisplayName("saveLenderTestFails")
-    void saveLenderTest2() throws  Exception
-    {
+    void saveLenderTest2() throws Exception {
         when(authService.RegisterLender(any(Lender.class))).thenReturn(false);
 
-        MvcResult result = mockMvc.perform(post("/api/register")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(super.mapToJson(lender)))
-                .andExpect(status().isExpectationFailed())
-                .andReturn();
+        MvcResult result = mockMvc.perform(
+                post("/api/register").contentType(MediaType.APPLICATION_JSON_VALUE).content(super.mapToJson(lender)))
+                .andExpect(status().isExpectationFailed()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString().replaceAll("\"","")).isEqualTo("An error occurred while registering");
+        assertThat(result.getResponse().getContentAsString().replaceAll("\"", ""))
+                .isEqualTo("An error occurred while registering");
     }
 
     @Test
     @DisplayName("saveLenderTestFails_WhenUsernameExists")
-    void saveLenderTest3() throws  Exception
-    {
+    void saveLenderTest3() throws Exception {
         when(authService.checkIfLenderExists(lender.getUsername())).thenReturn(true);
 
-        MvcResult result = mockMvc.perform(post("/api/register")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(super.mapToJson(lender)))
-                .andExpect(status().isConflict())
-                .andReturn();
-        assertThat(result.getResponse().getContentAsString().replaceAll("\"","")).isEqualTo("Username Exists");
+        MvcResult result = mockMvc.perform(
+                post("/api/register").contentType(MediaType.APPLICATION_JSON_VALUE).content(super.mapToJson(lender)))
+                .andExpect(status().isConflict()).andReturn();
+        assertThat(result.getResponse().getContentAsString().replaceAll("\"", "")).isEqualTo("Username Exists");
     }
 
     @Test
     @DisplayName("saveLenderWithInvalidEmail")
-    void saveLenderTest4() throws  Exception
-    {
+    void saveLenderTest4() throws Exception {
         when(authService.isEmailValid("@nehemiah.com")).thenReturn(false);
 
-        MvcResult result = mockMvc.perform(post("/api/register")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(super.mapToJson(lender)))
-                .andExpect(status().isBadRequest())
-                .andReturn();
+        MvcResult result = mockMvc.perform(
+                post("/api/register").contentType(MediaType.APPLICATION_JSON_VALUE).content(super.mapToJson(lender)))
+                .andExpect(status().isBadRequest()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString().replaceAll("\"","")).isEqualTo("Invalid email");
+        assertThat(result.getResponse().getContentAsString().replaceAll("\"", "")).isEqualTo("Invalid email");
     }
 
     @Test
-    void createAuthenticationTokenTest() throws Exception
-    {
-        JwtRequest jwtRequest = new JwtRequest("charles","1234Pass");
+    void createAuthenticationTokenTest() throws Exception {
+        JwtRequest jwtRequest = new JwtRequest("charles", "1234Pass");
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(super.mapToJson(jwtRequest)))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult mvcResult = mockMvc.perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(super.mapToJson(jwtRequest))).andExpect(status().isOk()).andReturn();
 
         String result = mvcResult.getResponse().getContentAsString();
-        Token token = super.mapFromJson(result,Token.class);
-        //System.out.println("TOKEN IS: "+ token.getToken() );
+        Token token = super.mapFromJson(result, Token.class);
+        // System.out.println("TOKEN IS: "+ token.getToken() );
 
         assertThat(token.getToken()).isNotBlank();
 
-
     }
 
     @Test
-    void failToCreateAuthenticationTokenTest() throws Exception
-    {
-        JwtRequest jwtRequest = new JwtRequest("wrongUsername","wrongPassword");
+    void failToCreateAuthenticationTokenTest() throws Exception {
+        JwtRequest jwtRequest = new JwtRequest("wrongUsername", "wrongPassword");
 
-        mockMvc.perform(post("/api/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(super.mapToJson(jwtRequest)))
-                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(super.mapToJson(jwtRequest))).andExpect(status().isUnauthorized());
     }
 
     @Test
-    void getUserIdDetailsTest() throws Exception
-    {
-        MvcResult mvcResult = mockMvc.perform(get("/api/getUserIdDetails")
-                .headers(new Token().getHttpHeaders()))
-                .andExpect(status().isOk())
-                .andReturn();
+    void getUserIdDetailsTest() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/api/getUserIdDetails").headers(new Token().getHttpHeaders()))
+                .andExpect(status().isOk()).andReturn();
 
-        assertEquals(mvcResult.getResponse().getContentType(),"application/json");
+        assertEquals(mvcResult.getResponse().getContentType(), "application/json");
     }
 
-   /* @Test
-    void getUserIdDetailsFailTest() throws Exception
-    {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization","Bearer "+new Token().testWrongToken);
+    /*
+     * @Test void getUserIdDetailsFailTest() throws Exception { HttpHeaders
+     * httpHeaders = new HttpHeaders();
+     * httpHeaders.add("Authorization","Bearer "+new Token().testWrongToken);
+     * 
+     * MvcResult mvcResult = mockMvc.perform(get("/api/getUserIdDetails")
+     * .headers(httpHeaders)) .andExpect(status().isOk()) .andReturn();
+     * 
+     * assertEquals(mvcResult.getResponse().getContentType(),"application/json"); }
+     */
+    @Test
+    void getAllLenderDetails() throws Exception {
+        when(authService.getAllLenderDetails()).thenReturn(Collections.singletonList(new Lender()));
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/getUserIdDetails")
-                .headers(httpHeaders))
-                .andExpect(status().isOk())
-                .andReturn();
+        mockMvc.perform(get("/api/getAllLenderDetails").headers(new Token().getHttpHeaders()))
+                .andExpect(status().isOk());
 
-        assertEquals(mvcResult.getResponse().getContentType(),"application/json");
     }
-*/
-   @Test
-   void getAllLenderDetails() throws  Exception
-   {
-       when(authService.getAllLenderDetails()).thenReturn(Collections.singletonList(new Lender()));
 
-       mockMvc.perform(get("/api/getAllLenderDetails")
-               .headers(new Token().getHttpHeaders()))
-               .andExpect(status().isOk());
+}// test class
 
-   }
-
-
-
-}//test class
-
-class Token{
+class Token {
 
     private String token;
 
@@ -185,13 +155,10 @@ class Token{
         return token;
     }
 
-    public HttpHeaders getHttpHeaders()
-    {
+    public HttpHeaders getHttpHeaders() {
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization","Bearer "+testRightToken);
+        httpHeaders.add("Authorization", "Bearer " + testRightToken);
         return httpHeaders;
     }
-
-
 
 }
